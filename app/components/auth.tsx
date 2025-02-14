@@ -77,7 +77,7 @@ export function AuthPage() {
         }}
       />
 
-      {!accessStore.hideUserApiKey ? (
+      {/* {!accessStore.hideUserApiKey ? (
         <>
           <div className={styles["auth-tips"]}>{Locale.Auth.SubTips}</div>
           <PasswordInput
@@ -107,7 +107,7 @@ export function AuthPage() {
             }}
           />
         </>
-      ) : null}
+      ) : null} */}
 
       <div className={styles["auth-actions"]}>
         <IconButton
@@ -115,12 +115,12 @@ export function AuthPage() {
           type="primary"
           onClick={goChat}
         />
-        <IconButton
+        {/* <IconButton
           text={Locale.Auth.SaasTips}
           onClick={() => {
             goSaas();
           }}
-        />
+        /> */}
       </div>
     </div>
   );
@@ -165,7 +165,7 @@ function TopBanner() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className={clsx(styles["top-banner-inner"], "no-dark")}>
+      {/* <div className={clsx(styles["top-banner-inner"], "no-dark")}>
         <Logo className={styles["top-banner-logo"]}></Logo>
         <span>
           {Locale.Auth.TopTips}
@@ -180,7 +180,7 @@ function TopBanner() {
             <Arrow style={{ marginLeft: "4px" }} />
           </a>
         </span>
-      </div>
+      </div> */}
       {(isHovered || isMobile) && (
         <Delete className={styles["top-banner-close"]} onClick={handleClose} />
       )}
