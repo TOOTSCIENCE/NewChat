@@ -1580,7 +1580,7 @@ export function Settings() {
             </Select>
           </ListItem>
 
-          {/* <ListItem title={Locale.Settings.Lang.Name}>
+          <ListItem title={Locale.Settings.Lang.Name}>
             <Select
               aria-label={Locale.Settings.Lang.Name}
               value={getLang()}
@@ -1594,7 +1594,7 @@ export function Settings() {
                 </option>
               ))}
             </Select>
-          </ListItem> */}
+          </ListItem>
 
           <ListItem
             title={Locale.Settings.FontSize.Title}

@@ -1,11 +1,6 @@
 "use client";
 // azure and openai, using same models. so using same LLMApi.
-import {
-  ApiPath,
-  DEEPSEEK_BASE_URL,
-  DeepSeek,
-  REQUEST_TIMEOUT_MS,
-} from "@/app/constant";
+import { ApiPath, DEEPSEEK_BASE_URL, DeepSeek } from "@/app/constant";
 import {
   useAccessStore,
   useAppConfig,
@@ -25,6 +20,7 @@ import { getClientConfig } from "@/app/config/client";
 import {
   getMessageTextContent,
   getMessageTextContentWithoutThinking,
+  getTimeoutMSByModel,
 } from "@/app/utils";
 import { RequestPayload } from "./openai";
 import { fetch } from "@/app/utils/stream";
@@ -35,6 +31,9 @@ export class DeepSeekApi implements LLMApi {
   path(path: string): string {
     const accessStore = useAccessStore.getState();
 
+    const customModelProviderApiPath = getClientConfig()?.customModelProvider === "deepseek" 
+      ? "/api/deepseek" : getClientConfig()?.customModelProviderApiPath || '';
+
     let baseUrl = "";
 
     if (accessStore.useCustomConfig) {
@@ -43,14 +42,15 @@ export class DeepSeekApi implements LLMApi {
 
     if (baseUrl.length === 0) {
       const isApp = !!getClientConfig()?.isApp;
-      const apiPath = ApiPath.DeepSeek;
+      // const apiPath = ApiPath.DeepSeek;
+      const apiPath = customModelProviderApiPath;
       baseUrl = isApp ? DEEPSEEK_BASE_URL : apiPath;
     }
 
     if (baseUrl.endsWith("/")) {
       baseUrl = baseUrl.slice(0, baseUrl.length - 1);
     }
-    if (!baseUrl.startsWith("http") && !baseUrl.startsWith(ApiPath.DeepSeek)) {
+    if (!baseUrl.startsWith("http") && !baseUrl.startsWith(customModelProviderApiPath)) {
       baseUrl = "https://" + baseUrl;
     }
 
@@ -79,11 +79,17 @@ export class DeepSeekApi implements LLMApi {
       }
     }
 
+    let customModelProvider = getClientConfig()?.customModelProvider === "deepseek" 
+      ? options.config.model : getClientConfig()?.customModelProvider || '';
+      if(getClientConfig()?.customModelProvider === "deepseek" && customModelProvider == 'deepseek-r1'){
+        customModelProvider = 'deepseek-chat';
+      }
+
     const modelConfig = {
       ...useAppConfig.getState().modelConfig,
       ...useChatStore.getState().currentSession().mask.modelConfig,
       ...{
-        model: options.config.model,
+        model: customModelProvider,
         providerName: options.config.providerName,
       },
     };
@@ -107,10 +113,10 @@ export class DeepSeekApi implements LLMApi {
     options.onController?.(controller);
 
     try {
-      const chatPath = this.path(DeepSeek.ChatPath);
-      if (requestPayload.model === 'deepseek-r1') {
-        requestPayload.model = getClientConfig()?.DEEPSEEK_MODEL || "deepseek-r1";
-      }
+
+      const customModelProviderChatPath = getClientConfig()?.customModelProvider === "deepseek" 
+      ? "chat/completions" : getClientConfig()?.customModelProviderChatPath || '';
+      const chatPath = this.path(customModelProviderChatPath);
       const chatPayload = {
         method: "POST",
         body: JSON.stringify(requestPayload),
@@ -118,12 +124,10 @@ export class DeepSeekApi implements LLMApi {
         headers: getHeaders(),
       };
 
-      // console.log(chatPayload);
-
       // make a fetch request
       const requestTimeoutId = setTimeout(
         () => controller.abort(),
-        REQUEST_TIMEOUT_MS,
+        getTimeoutMSByModel(options.config.model),
       );
 
       if (shouldStream) {
@@ -174,8 +178,8 @@ export class DeepSeekApi implements LLMApi {
 
             // Skip if both content and reasoning_content are empty or null
             if (
-              (!reasoning || reasoning.trim().length === 0) &&
-              (!content || content.trim().length === 0)
+              (!reasoning || reasoning.length === 0) &&
+              (!content || content.length === 0)
             ) {
               return {
                 isThinking: false,
@@ -183,12 +187,12 @@ export class DeepSeekApi implements LLMApi {
               };
             }
 
-            if (reasoning && reasoning.trim().length > 0) {
+            if (reasoning && reasoning.length > 0) {
               return {
                 isThinking: true,
                 content: reasoning,
               };
-            } else if (content && content.trim().length > 0) {
+            } else if (content && content.length > 0) {
               return {
                 isThinking: false,
                 content: content,

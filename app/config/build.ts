@@ -11,7 +11,10 @@ export const getBuildConfig = () => {
   const buildMode = process.env.BUILD_MODE ?? "standalone";
   const isApp = !!process.env.BUILD_APP;
   const version = "v" + tauriConfig.package.version;
-  const DEEPSEEK_MODEL = process.env.DEEPSEEK_MODEL ?? "deepseek-r1";
+  const customModelProvider = process.env.CUSTOM_MODEL_PROVIDER ?? "deepseek";
+  const customModelProviderUrl = process.env.CUSTOM_MODEL_PROVIDER_URL ?? "https://api.deepseek.com";
+  const customModelProviderApiPath = process.env.CUSTOM_MODEL_PROVIDER_API_PATH ?? "/api/deepseek";
+  const customModelProviderChatPath = process.env.CUSTOM_MODEL_PROVIDER_CHAT_PATH ?? "chat/completions";
 
   const commitInfo = (() => {
     try {
@@ -40,7 +43,10 @@ export const getBuildConfig = () => {
     ...commitInfo,
     buildMode,
     isApp,
-    DEEPSEEK_MODEL,
+    customModelProvider,
+    customModelProviderUrl,
+    customModelProviderApiPath,
+    customModelProviderChatPath,
     template: process.env.DEFAULT_INPUT_TEMPLATE ?? DEFAULT_INPUT_TEMPLATE,
   };
 };
